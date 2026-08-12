@@ -1,18 +1,18 @@
 from abc import ABC, abstractmethod
-from pandas import DataFrame, Timestamp, Timedelta
-from sympy.plotting.intervalmath import interval
+from pandas import DataFrame, Timestamp
+from portfolio import Portfolio
 
 
 # base strategy class
 class Strategy(ABC):
     history_buffer: int = 0
     @abstractmethod
-    def decide(self, history: DataFrame, current_date: Timestamp, portfolio: str) -> str:
+    def decide(self, history: DataFrame, current_date: Timestamp, portfolio: Portfolio) -> str:
         pass
 
 # DCA strategy
 class DCAStrategy(Strategy):
-    INTERVAL_DAYS = {'1d': 1, '5d': 5, '1mo': 30.44, '3mo': 91.3, '6mo': 182.6, '1y': 365.25}
+    INTERVAL_DAYS = {'1d': 1, '5d': 7, '1mo': 30.44, '3mo': 91.3, '6mo': 182.6, '1y': 365.25}
 
     def __init__(self, interval: str = '1mo'):
         # will default to monthly if invalid interval is provided
