@@ -9,7 +9,7 @@ from position_sizer import PositionSizer
 from strategy import DCAStrategy
 import analytics
 
-st.set_page_config(page_title="Trading Backtester Dashboard", layout="wide")
+st.set_page_config(page_title="DCA Backtester", layout="wide")
 
 st.title("Dollar Cost Averaging Backtester")
 
