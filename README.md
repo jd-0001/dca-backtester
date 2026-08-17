@@ -1,4 +1,9 @@
 # Dollar Cost Average Backtester
+![Python Version](https://img.shields.io/badge/python-3.13%2B-blue)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat&logo=Streamlit&logoColor=white)
+
+
 The Dollar Cost Average Backtester provides a backtesting engine for the Dollar Cost Average investment strategy.
 
 ![Dashboard](assets/dashboard.png)
