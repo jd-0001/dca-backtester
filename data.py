@@ -44,7 +44,6 @@ class Data:
         # exit if no data
         if self.dat.empty:
             print("No stock data found.")
-            exit()
 
         # flatten the multi-index
         self.dat.columns = self.dat.columns.get_level_values(0)

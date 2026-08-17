@@ -18,7 +18,7 @@ class PositionSizer:
                 if sizer_amount <= 0:
                     raise ValueError("Share count sizer amount must be positive")
             case _:
-                raise ValueError(f"Sizer type must be one of 'fixed', 'fractional', or 'share', got '{sizer_type}'")
+                raise ValueError(f"Sizer type must be one of 'cash', 'fractional', or 'share', got '{sizer_type}'")
 
         self._sizer_amount = sizer_amount
 

@@ -4,6 +4,7 @@ from portfolio import Portfolio, InsufficientFundsError
 from position_sizer import PositionSizer
 from strategy import Strategy
 from data import Data
+import analytics
 
 # Backtester class
 class Backtester:
@@ -30,57 +31,43 @@ class Backtester:
 
     def run(self):
         """Simulate trading and execute buy orders based on the strategy."""
+        # Record initial state
+        if not self.data.empty:
+            initial_date = self.data.iloc[0]["date"]
+            # Before the first bar, we just have initial cash
+            self.portfolio.history.append((initial_date, self.portfolio.cash))
+
         # iterate through each row in the data
-        for i in range(len(self.data)):
+        for i in range(len(self.data) - 1): # stop at the penultimate row because we trade on the next open
             try:
                 # trigger buy signal
+                # history passed to decide excludes the current bar i to avoid look-ahead bias
                 if self.strategy.decide(self.data.iloc[:i], Timestamp(self.data.iloc[i]["date"]), self.portfolio) == "buy":
-                    # calculate the amount of shares to buy based on the position sizer
-                    match self.position_sizer.sizer_type:
-                        # invest a fixed amount of cash
-                        case 'cash':
-                            self.portfolio.buy(self.ticker,
-                                               self.position_sizer.sizer_amount / self.data.iloc[i]["close"],
-                                               self.data.iloc[i]["close"]
-                            )
-                        # invest a fraction of the total portfolio value in cash
-                        case 'fractional':
-                            self.portfolio.buy(self.ticker,
-                                               (self.position_sizer.sizer_amount * self.net_worth()) / self.data.iloc[i]["close"],
-                                               self.data.iloc[i]["close"]
-                            )
-                        # invest a fixed number of shares
-                        case 'share':
-                            self.portfolio.buy(self.ticker,
-                                               self.position_sizer.sizer_amount,
-                                               self.data.iloc[i]["close"])
+                    # Use the position sizer to determine the cash amount to invest
+                    # We use the close price of day i as our reference for sizing
+                    price_now = self.data.iloc[i]["close"]
+                    amount_to_invest = self.position_sizer.size(price_now)
+                    
+                    # Execute trade at the NEXT day's OPEN price
+                    price_next_open = self.data.iloc[i+1]["open"]
+                    shares_to_buy = amount_to_invest / price_next_open
+                    
+                    self.portfolio.buy(self.ticker,
+                                       shares_to_buy,
+                                       price_next_open,
+                                       date=self.data.iloc[i+1]["date"]
+                    )
+
+                current_total_value = analytics.net_worth(self.data.iloc[:i+1], self.portfolio)
+                self.portfolio.history.append((self.data.iloc[i]["date"], current_total_value))
+
             # skip buy order if insufficient funds
             except InsufficientFundsError:
                 print("Insufficient funds, skipping...")
                 continue
-
-    # calculate net worth
-    def net_worth(self):
-        """Calculate the total value of the portfolio including cash and shares."""
-        # get current share price
-        current_price = self.data.iloc[-1]["close"]
-        total_value = self.portfolio.cash
-
-        # calculate sum of share values
-        for ticker, lots in self.portfolio.shares.items():
-            for lot in lots:
-                current_value = lot.shares * current_price
-                total_value += current_value
-        return total_value
-
-    # calculate returns
-    def returns(self):
-        """Calculate the returns on the total value of the portfolio."""
-        invested = self.portfolio.invested
-        net_worth = self.net_worth()
-        return {
-            "Cash Invested": invested,
-            "Total Value": net_worth,
-            "P&L": net_worth - (self.portfolio.cash + invested),
-            "P&L Percentage": (net_worth - (self.portfolio.cash + invested)) / invested * 100
-        }
+        
+        # Final update for the last day
+        if not self.data.empty:
+            last_idx = len(self.data) - 1
+            current_total_value = analytics.net_worth(self.data.iloc[:last_idx+1], self.portfolio)
+            self.portfolio.history.append((self.data.iloc[last_idx]["date"], current_total_value))
