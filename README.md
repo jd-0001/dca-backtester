@@ -13,13 +13,12 @@ The Dollar Cost Average Backtester provides a backtesting engine for the Dollar 
 ### Ticker Selection
 ![](assets/ticker.png)
 
-Any ticker from the NYSE can be used.
+Any ticker available on yfinance can be used.
 
 ### Backtest Period
 ![](assets/period.png)
 
-You may backtest from any period, starting from `1962-01-02`, the earliest abailable `yfinance` 
-data.
+You may backtest from any period, starting from `1962-01-02`.
 
 
 ### Initial Cash
